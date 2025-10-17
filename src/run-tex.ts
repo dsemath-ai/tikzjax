@@ -25,6 +25,8 @@ async function loadDecompress(file: keyof typeof texFilesBase64): Promise<Uint8A
 	}
 }
 
+const endDocument = /\\end *\{document\}$/s;
+
 expose({
 	load: async function() {
 		code = await loadDecompress('tex.wasm.gz');
@@ -34,6 +36,10 @@ expose({
 		const semaphore = getSemaphore('tikzjax-texify');
 		await semaphore.acquire();
 		try {
+			if (!endDocument.test(input.trim())) {
+				input += '\n\\end{document}';
+			}
+
 			library.writeFileSync("input.tex", Buffer.from(input));
 
 			// Set up the tex web assembly.
