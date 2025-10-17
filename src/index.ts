@@ -140,6 +140,8 @@ async function processTikzScripts(scripts) {
 }
 
 async function processTikzCode(code: string) {
+	texWorker = await texWorker;
+
 	let html = "";
 	try {
 		html = await texWorker.texify(code);
