@@ -13,7 +13,7 @@ if (document.currentScript === undefined) {
 }
 
 declare global {
-	var TikzJax: ((tikzCode: string, dataset: object) => Promise<string>)|undefined;
+	var TikzJax: ((tikzCode: string) => Promise<string>)|undefined;
 	var TikzJaxOptions: {
 		autostart?: boolean;
 		observe?: boolean;
@@ -29,7 +29,7 @@ async function processTikzScripts(scripts) {
 		let texQueue = [];
 
 		async function loadCachedOrSetupLoader(elt) {
-			elt.md5hash = md5(JSON.stringify(elt.dataset) + elt.childNodes[0].nodeValue);
+			elt.md5hash = md5(elt.childNodes[0].nodeValue);
 
 			let savedSVG = await localForage.getItem<string>(elt.md5hash);
 
@@ -72,7 +72,7 @@ async function processTikzScripts(scripts) {
 
 			let html = "";
 			try {
-				html = await texWorker.texify(text, Object.assign({}, elt.dataset));
+				html = await texWorker.texify(text);
 			} catch (err) {
 				console.log(err);
 				// Show the browser's image not found icon.
@@ -139,17 +139,17 @@ async function processTikzScripts(scripts) {
 	return currentProcessPromise;
 }
 
-async function processTikzCode(code: string, dataset={}) {
+async function processTikzCode(code: string) {
 	let html = "";
 	try {
-		html = await texWorker.texify(code, Object.assign({}, dataset));
+		html = await texWorker.texify(code);
 	} catch (err) {
 		console.log(err);
 		// Show the browser's image not found icon.
 		return "<img src='//invalid.site/img-not-found.png'/>";
 	}
 
-	const md5hash = md5(JSON.stringify(dataset) + html);
+	const md5hash = md5(html);
 
 	let ids = html.match(/\bid="pgf[^"]*"/g);
 	if (ids) {
