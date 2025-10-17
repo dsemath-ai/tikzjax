@@ -17,6 +17,7 @@
 	],
 	"license": "GPL-3.0+",
 	"dependencies": {
+		"@henrygd/semaphore": "^0.1.0",
 		"buffer": "^6.0.3",
 		"dvi2html": "github:artisticat1/dvi2html#ww-modifications",
 		"fetch-readablestream": "^0.2.0",
@@ -34,7 +35,7 @@
 		"css-loader": "^5.0.1",
 		"gulp": "^4.0.2",
 		"gulp-decompress": "^3.0.0",
-		"gulp-download2": "^1.0.2",
+		"gulp-download2": "^1.1.0",
 		"gulp-filter": "^6.0.0",
 		"style-loader": "^2.0.0",
 		"ts-loader": "^9.4.2",

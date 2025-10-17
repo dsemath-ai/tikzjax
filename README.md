@@ -7,12 +7,12 @@ My fork is based on the `output-single-file` branch of [`artisticat1/tikzjax`](h
 * [x] fixed build issues with changes to `package.json` and `webpack.config.js` 
 * [x] a `Dockerfile` and `docker-compose.yml` which allow for reproducible builds of `tikzjax` via a Docker image that installs all required dependencies and runs the build scripts for both `tikzjax` and `web2js`
 * [x] a `build_tikzjax.sh` which starts the Docker container and extracts the resulting output files
+* [x] add a way to disable the automatic detection of `<script type="tikz">` elements, and instead manually invoke the `tikzjax` renderer, for more control
 
 In the future, I hope to make the following improvements:
 
 * [ ] include some basic basic symbols & packages which are currently missing, for example `\ulcorner` and `\lrcorner` for commutative diagrams
 * [ ] make it easier to include custom `*.sty` files, such as `quiver.sty` from [q.uiver.app](https://q.uiver.app/)
-* [ ] add a way to disable the automatic detection of `<script type="tikz">` elements, and instead manually invoke the `tikzjax` renderer, for more control
 * [ ] add a way to disable caching of rendered tikzjax elements, for development purposes
 * [ ] add a way to override the default loading spinner
 * [ ] rather than printing TeX rendering errors to the console, allow the user to pass in a custom handler for console output.  This would make it possible to display any TeX errors on the page itself, rather than just in the console.

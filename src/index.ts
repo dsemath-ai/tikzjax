@@ -13,7 +13,11 @@ if (document.currentScript === undefined) {
 }
 
 declare global {
-	var TikzJax: boolean|undefined;
+	var TikzJax: ((tikzCode: string, dataset: object) => Promise<string>)|undefined;
+	var TikzJaxOptions: {
+		autostart?: boolean;
+		observe?: boolean;
+	}
 }
 
 var processQueue = [];
@@ -90,7 +94,7 @@ async function processTikzScripts(scripts) {
 			// Patch: Fixes symbols stored in the SOFT HYPHEN character (e.g. \Omega, \otimes) not being rendered
 			// Replaces soft hyphens with ¬
 			html = html.replaceAll("&#173;", "&#172;");
-	
+
 
 			let svg = document.createRange().createContextualFragment(html).firstChild as SVGElement;
 			loader.replaceWith(svg);
@@ -135,6 +139,34 @@ async function processTikzScripts(scripts) {
 	return currentProcessPromise;
 }
 
+async function processTikzCode(code: string, dataset={}) {
+	let html = "";
+	try {
+		html = await texWorker.texify(code, Object.assign({}, dataset));
+	} catch (err) {
+		console.log(err);
+		// Show the browser's image not found icon.
+		return "<img src='//invalid.site/img-not-found.png'/>";
+	}
+
+	const md5hash = md5(JSON.stringify(dataset) + html);
+
+	let ids = html.match(/\bid="pgf[^"]*"/g);
+	if (ids) {
+		// Sort the ids from longest to shortest.
+		ids.sort((a, b) => { return b.length - a.length; });
+		for (let id of ids) {
+			let pgfIdString = id.replace(/id="pgf(.*)"/, "$1");
+			html = html.replaceAll("pgf" + pgfIdString, `pgf${md5hash}${pgfIdString}`);
+		}
+	}
+
+	// Patch: Fixes symbols stored in the SOFT HYPHEN character (e.g. \Omega, \otimes) not being rendered
+	// Replaces soft hyphens with ¬
+	html = html.replaceAll("&#173;", "&#172;");
+	return html;
+}
+
 function getWorkerFromString(code: string) {
 	window.URL = window.URL || window.webkitURL;
 
@@ -150,7 +182,7 @@ async function initializeWorker() {
 	// (note: workerCode is a string containing the compiled source of run-tex.ts, inlined by webpack)
 	const tex = await spawn(getWorkerFromString(workerCode as string));
 	Thread.events(tex).subscribe(e => {
-		if (e.type == "message" && typeof(e.data) === "string") console.log(e.data);
+		if (e.type == "message" && typeof(e.data) === "string" && e.data.startsWith('!')) console.log(e.data);
 	});
 
 	// Load the assembly and core dump.
@@ -164,12 +196,14 @@ async function initializeWorker() {
 }
 
 async function initialize() {
+	if (window.TikzJaxOptions?.autostart === false) return;
 	// Process any text/tikz scripts that are on the page initially.
 	processTikzScripts(Array.prototype.slice.call(document.getElementsByTagName('script')).filter(
 		(e) => (e.getAttribute('type') === 'text/tikz')
 	));
 
 	// If a text/tikz script is added to the page later, then process those.
+	if (window.TikzJaxOptions?.observe === false) return;
 	observer = new MutationObserver((mutationsList, observer) => {
 		let newTikzScripts = [];
 		for (const mutation of mutationsList) {
@@ -196,7 +230,7 @@ async function shutdown() {
 }
 
 if (!window.TikzJax) {
-	window.TikzJax = true;
+	window.TikzJax = processTikzCode;
 
 	localForage.config({ name: 'TikzJax', storeName: 'svgImages' });
 	texWorker = initializeWorker();
