@@ -34,11 +34,6 @@ expose({
 		const semaphore = getSemaphore('tikzjax-texify');
 		await semaphore.acquire();
 		try {
-			if (input.match('\\\\begin *{document}') === null) {
-				input = '\\begin{document}\n' + input;
-			}
-  		input = input + '\n\\end{document}\n';
-
 			library.writeFileSync("input.tex", Buffer.from(input));
 
 			// Set up the tex web assembly.
